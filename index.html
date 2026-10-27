@@ -26,6 +26,7 @@
 .metric strong{transition:color .25s}
 .metric:hover strong{color:var(--green)}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}.reveal-ready .reveal{opacity:1;transform:none}}
+.owner-editor{position:fixed;right:18px;bottom:18px;z-index:30;display:flex;gap:8px;align-items:center;background:#20241f;color:white;padding:9px;border-radius:8px;box-shadow:0 8px 28px #0003;font:600 11px var(--sans)}.owner-editor button{font:600 11px var(--sans);border:0;border-radius:4px;padding:9px 11px;cursor:pointer}.owner-editor span{font-size:10px;color:#d1d8d1;padding:0 5px}.owner-editing [data-owner-field]{outline:1px dashed #63806d;outline-offset:3px;cursor:text}.owner-editing [data-owner-field]:focus{outline:2px solid #78a482}@media print{.owner-editor{display:none!important}}
 </style>
 </head>
 <body>
@@ -49,6 +50,17 @@
 
 <script>
 document.getElementById('year').textContent=new Date().getFullYear();
+// Keep the personal editor available only in the owner's local file copy.
+if(location.protocol==='file:'){
+ const ownerFields=[...document.querySelectorAll('.brand,.eyebrow,h1,.lede,.availability span:not(.dot),.card-bottom strong,.card-bottom>span,.metric strong,.metric span,.section-intro,.skill,.role .date,.role h3,.role p,.proof blockquote,.proof p,.contact p,.contact .button,.footer>span:last-child')];
+ ownerFields.forEach((el,index)=>el.dataset.ownerField=String(index));
+ try{const saved=JSON.parse(localStorage.getItem('shikhar-owner-portfolio-v1')||'null');if(saved&&saved.length===ownerFields.length)saved.forEach((html,index)=>ownerFields[index].innerHTML=html)}catch{}
+ const bar=document.createElement('div');bar.className='owner-editor';bar.innerHTML='<span id="owner-status">Local editor · changes stay on this device</span><button id="owner-edit">Edit page</button><button id="owner-save" hidden>Save changes</button><button id="owner-print">Print / PDF</button>';document.body.append(bar);
+ const status=document.getElementById('owner-status'),editButton=document.getElementById('owner-edit'),saveButton=document.getElementById('owner-save');
+ editButton.addEventListener('click',()=>{document.body.classList.add('owner-editing');ownerFields.forEach(el=>el.contentEditable='true');editButton.hidden=true;saveButton.hidden=false;status.textContent='Edit text; save when finished'});
+ saveButton.addEventListener('click',()=>{localStorage.setItem('shikhar-owner-portfolio-v1',JSON.stringify(ownerFields.map(el=>el.innerHTML)));document.body.classList.remove('owner-editing');ownerFields.forEach(el=>el.contentEditable='false');editButton.hidden=false;saveButton.hidden=true;status.textContent='Changes saved on this device';setTimeout(()=>status.textContent='Local editor · changes stay on this device',2500)});
+ document.getElementById('owner-print').addEventListener('click',()=>window.print());
+}
 
 // Scroll progress and active section links
 const progress=document.getElementById('scroll-progress');
